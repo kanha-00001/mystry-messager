@@ -25,9 +25,7 @@ export async function middleware(request: NextRequest) {
   if (
     !token &&
     (
-      url.pathname.startsWith('/dashboard') ||
-      url.pathname.startsWith('/verify')
-    )
+      url.pathname.startsWith('/dashboard')     )
   ) {
     return NextResponse.redirect(new URL('/sign-in', request.url));
   }
@@ -42,6 +40,5 @@ export const config = {
     '/sign-up',
     '/',
     '/dashboard/:path*',
-    '/verify/:path*',
   ],
 };

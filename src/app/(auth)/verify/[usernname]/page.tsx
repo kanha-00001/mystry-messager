@@ -9,6 +9,7 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
+import { useToast } from '@/components/ui/use-toast';
 import { ApiResponse } from '@/types/ApiResponse';
 import { zodResolver } from '@hookform/resolvers/zod';
 import axios, { AxiosError } from 'axios';
@@ -16,42 +17,37 @@ import { useParams, useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
 import { verifySchema } from '@/schemas/verifySchema';
-import { toast } from 'sonner';
 
 export default function VerifyAccount() {
   const router = useRouter();
   const params = useParams<{ username: string }>();
-  console.log("Rendered with username:", params.username);
-
-
-        const form = useForm<z.infer<typeof verifySchema>>({
+  const { toast } = useToast();
+  const form = useForm<z.infer<typeof verifySchema>>({
     resolver: zodResolver(verifySchema),
   });
 
   const onSubmit = async (data: z.infer<typeof verifySchema>) => {
     try {
-
       const response = await axios.post<ApiResponse>(`/api/verify-code`, {
         username: params.username,
         code: data.code,
       });
-      console.log("Form submitted with data:", data); // add this
 
-      toast.success("Success: " + response.data.message);
+      toast({
+        title: 'Success',
+        description: response.data.message,
+      });
 
-     // router.replace("/sign-in");
+      router.replace('/sign-in');
     } catch (error) {
       const axiosError = error as AxiosError<ApiResponse>;
-
-      let errorMessage = axiosError.response?.data.message;
-      ("There was a problem with your sign-up. Please try again.");
-
-      toast(
-        <div>
-          <p className="font-semibold text-red-600">Sign Up Failed</p>
-          <p className="text-sm">{errorMessage}</p>
-        </div>
-      );
+      toast({
+        title: 'Verification Failed',
+        description:
+          axiosError.response?.data.message ??
+          'An error occurred. Please try again.',
+        variant: 'destructive',
+      });
     }
   };
 
